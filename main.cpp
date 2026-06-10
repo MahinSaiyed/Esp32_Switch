@@ -3,19 +3,31 @@
 #define BLYNK_AUTH_TOKEN "JY8ctbY0wpsmJiDCGZxszeo5P2T65HpF"
 
 #define BLYNK_PRINT Serial
+
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <BlynkSimpleEsp32.h>
 
-// -------- WIFI DETAILS ----------
-char ssid[] = "Saiyed House_4G";
-char pass[] = "8347874084SAIYEDF3";
+// ---------- 3 WIFI NETWORKS ----------
+char* ssids[] = {
+  "Saiyed House_4G",
+  "JioAirfiber",
+  "Saiyed House_5G"
+};
+
+char* passwords[] = {
+  "8347874084SAIYED--",
+  "09876543--",
+  "MAHIN@%003%--"
+};
+
+const int totalNetworks = 3;
 
 // ---------- RELAY PIN ----------
 #define RELAY1_PIN 33
 #define RELAY2_PIN 32
 
-// ---------- ESP32 BLUE LED ----------
+// ---------- STATUS LED ----------
 #define WIFI_LED 2
 
 BlynkTimer timer;
@@ -42,67 +54,108 @@ BLYNK_WRITE(V2) {
   Blynk.virtualWrite(V4, digitalRead(RELAY2_PIN));
 }
 
+// ---------- CONNECT WIFI ----------
+void connectWiFi() {
+
+  bool connected = false;
+
+  while (!connected) {
+
+    for (int i = 0; i < totalNetworks; i++) {
+
+      Serial.print("Trying WiFi: ");
+      Serial.println(ssids[i]);
+
+      WiFi.begin(ssids[i], passwords[i]);
+
+      int attempt = 0;
+
+      while (WiFi.status() != WL_CONNECTED && attempt < 10) {
+        delay(1000);
+        Serial.print(".");
+        attempt++;
+      }
+
+      if (WiFi.status() == WL_CONNECTED) {
+
+        Serial.println("\nWiFi Connected!");
+        Serial.print("Connected to: ");
+        Serial.println(ssids[i]);
+
+        connected = true;
+        break;
+      }
+    }
+
+    if (!connected) {
+      Serial.println("Retrying all WiFi networks...");
+      delay(3000);
+    }
+  }
+}
+
 void setup() {
+
   Serial.begin(115200);
 
   pinMode(RELAY1_PIN, OUTPUT);
   pinMode(RELAY2_PIN, OUTPUT);
   pinMode(WIFI_LED, OUTPUT);
 
-  // Relay OFF at startup
+  // Boot par relay OFF
   digitalWrite(RELAY1_PIN, HIGH);
   digitalWrite(RELAY2_PIN, HIGH);
 
-  // LED OFF at startup
+  // LED OFF startup
   digitalWrite(WIFI_LED, LOW);
 
   Serial.println("Boot Status: Relay1 OFF, Relay2 OFF");
 
+  // Connect WiFi
+  connectWiFi();
+
   // Connect Blynk
-  Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
+  Blynk.config(BLYNK_AUTH_TOKEN);
+  Blynk.connect();
 }
 
 void loop() {
 
-  // Check WiFi/Blynk connection
-  if (Blynk.connected()) {
+  // If WiFi disconnected → reconnect
+  if (WiFi.status() != WL_CONNECTED) {
+    digitalWrite(WIFI_LED, LOW);
+    connectWiFi();
+  }
 
-    int rssi = WiFi.RSSI(); // Signal strength
+  // ---------- WiFi Signal LED ----------
+  int rssi = WiFi.RSSI();
 
-    Serial.print("WiFi Signal: ");
-    Serial.println(rssi);
+  if (WiFi.status() == WL_CONNECTED) {
 
-    // Level 1: Strong signal
+    // Strong signal → LED always ON
     if (rssi >= -55) {
       digitalWrite(WIFI_LED, HIGH);
     }
 
-    // Level 2: Slightly weak
+    // Slight weak
     else if (rssi >= -65) {
-      digitalWrite(WIFI_LED, HIGH);
-      delay(2000);
-      digitalWrite(WIFI_LED, LOW);
+      digitalWrite(WIFI_LED, !digitalRead(WIFI_LED));
       delay(2000);
     }
 
-    // Level 3: Weak
+    // Weak
     else if (rssi >= -75) {
-      digitalWrite(WIFI_LED, HIGH);
-      delay(700);
-      digitalWrite(WIFI_LED, LOW);
+      digitalWrite(WIFI_LED, !digitalRead(WIFI_LED));
       delay(700);
     }
 
-    // Level 4: Very weak
+    // Very weak
     else {
-      digitalWrite(WIFI_LED, HIGH);
-      delay(200);
-      digitalWrite(WIFI_LED, LOW);
+      digitalWrite(WIFI_LED, !digitalRead(WIFI_LED));
       delay(200);
     }
 
   } else {
-    // WiFi disconnected
     digitalWrite(WIFI_LED, LOW);
   }
 
