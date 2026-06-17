@@ -12,14 +12,12 @@
 // ---------- 3 WIFI NETWORKS ----------
 char* ssids[] = {
   "Saiyed House_4G",
-  "JioAirfiber",
-  "Saiyed House_5G"
+  "JioAirfiber"
 };
 
 char* passwords[] = {
-  "8347874084SAIYED--",
-  "09876543--",
-  "MAHIN@%003%--"
+  "8347874084SAIYEDF3",
+  "0987654321"
 };
 
 const int totalNetworks = 3;
