@@ -1,6 +1,7 @@
-#define BLYNK_TEMPLATE_ID "TMPL3i5sLU3P5"
-#define BLYNK_TEMPLATE_NAME "myesp32switch"
-#define BLYNK_AUTH_TOKEN "JY8ctbY0wpsmJiDCGZxszeo5P2T65HpF"
+
+#define BLYNK_TEMPLATE_ID "TMPL3x-9CE7Tg"
+#define BLYNK_TEMPLATE_NAME "Quickstart Template"
+#define BLYNK_AUTH_TOKEN "YUowSKf7hkBzmNE0lJeI03hOdKQdh6Ua"
 
 #define BLYNK_PRINT Serial
 
